@@ -202,6 +202,10 @@ print(json.loads(response["Body"].read())["answers"])
 Callers need IAM permission `sagemaker:InvokeEndpoint` on the endpoint. The container has no
 authentication of its own.
 
+For a complete application, [`examples/strands/`](../../examples/strands/README.md#against-a-hosted-endpoint)
+runs a Strands agent whose tool calls are gated by this endpoint: set
+`STRANDS_DECIDER_SAGEMAKER_ENDPOINT` to the endpoint's name and run it.
+
 ## Deleting it
 
 An endpoint costs money for every hour it runs, whether or not it gets requests. When you

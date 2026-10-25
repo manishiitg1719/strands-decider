@@ -22,6 +22,41 @@ On an Apple-silicon Mac, `pip install -e ".[mlx]" strands-agents` and `--device 
 `serve` line run the decider through MLX
 ([Serving on a Mac with MLX](../../docs/inference.md#serving-on-a-mac-with-mlx)).
 
+## Against a hosted endpoint
+
+The same example runs against a decider you have deployed on Amazon SageMaker
+([deploy/sagemaker/README.md](../../deploy/sagemaker/README.md)), with no local server and no
+GPU on your side. Name the endpoint and run the example as before:
+
+```bash
+export AWS_REGION=<region>   # the region you deployed to (AWS_DEFAULT_REGION works too)
+export STRANDS_DECIDER_SAGEMAKER_ENDPOINT=strands-decider-2b-qwen3-5-v1-2610
+python examples/strands/tool_call_intervention.py
+```
+
+Only the transport changes. `_client.py` sends the same `/v1/systemone` body through
+`sagemaker-runtime` `InvokeEndpoint`, signed with your AWS credentials, so the questions, the
+policy and the output are the same as against a local server. In your own code:
+
+```python
+from _client import Decider
+
+decider = Decider(sagemaker_endpoint="strands-decider-2b-qwen3-5-v1-2610", region="us-west-2")
+answers = decider.ask("Help! My payouts have been failing for 3 days!",
+                      {"is_urgent": Decider.noul("Does this convey urgency?")})
+```
+
+The region is the `region=` argument if you pass one, else `AWS_REGION`, else
+`AWS_DEFAULT_REGION`, else the region of your active AWS profile (`AWS_PROFILE`, `~/.aws/config`).
+
+The calling identity needs `sagemaker:InvokeEndpoint` on the endpoint, and nothing else: the
+container has no authentication of its own. The example does not use `describe-endpoint`. Its
+start-up check sends one small real request instead, so a wrong name, region or credential fails
+there rather than in the middle of an agent run. `STRANDS_DECIDER_URL` is ignored while
+`STRANDS_DECIDER_SAGEMAKER_ENDPOINT` is set.
+
+An endpoint bills for every hour it runs. `npx cdk destroy` removes it when you are done.
+
 The scenario is deliberately small. The agent has one `get_weather` tool and a system prompt
 that makes it eager, and the user asks "*What's the weather?*" without saying where. The agent
 guesses a city and calls the tool anyway. Before that call runs, strands decider reads the

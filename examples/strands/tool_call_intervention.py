@@ -35,6 +35,10 @@ milliseconds, the conversation never leaves the machine, and each verdict is a n
 Needs AWS credentials for Bedrock to drive the agent. The gate needs only the local
 server, so swap `model=` for any Strands model provider and the strands-decider half is
 unchanged. STRANDS_DECIDER_URL overrides the endpoint (default http://127.0.0.1:8099).
+
+To use a decider deployed on Amazon SageMaker instead of a local server, set
+STRANDS_DECIDER_SAGEMAKER_ENDPOINT to the endpoint's name (and AWS_REGION or AWS_DEFAULT_REGION
+to its region); see README.md, "Against a hosted endpoint".
 """
 
 from __future__ import annotations
